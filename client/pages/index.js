@@ -162,7 +162,7 @@ export default function Home() {
   };
 
   // getTotalTokensMinted: Retrieves how many tokens have been minted till now out of total supply
-  const getTotalTokensMinted = asyn () => {
+  const getTotalTokensMinted = async () => {
     try {
       //get provider from web3modal
       //no signer, read only
@@ -222,7 +222,7 @@ export default function Home() {
     }
   };
 
-  const getProviderorSigner = async (needSigner = false) => {
+  const getProviderOrSigner = async (needSigner = false) => {
     // Connect to Metamask
     // Since web3modal is stored as reference, need to access current value to get underlying object
     const provider = await web3ModalRef.current.connect();
@@ -272,4 +272,98 @@ export default function Home() {
     }
   }, [walletConnected]);
 
+  const renderButton = () => {
+    if (loading) {
+      return (
+        <div>
+          <button className={styles.button}>Loading...</button>
+        </div>
+      );
+    }
+    // if owner is connected, withdrawCoins is called
+    if (walletConnected && isOwner) {
+      return (
+        <div>
+          <button className={styles.button1} onClick={withdrawCoins}>
+            Withdraw Coins
+          </button>
+        </div>
+      );
+    }
+    // If tokens to be claimed are greater than 0, return a claim button
+    if (tokensToBeClaimed > 0) {
+      return (
+        <div>
+          <div className={styles.description}>
+            {tokensToBeClaimed * 10} Token can be claimed!
+          </div>
+          <button className={styles.button} onClick={claimCryptoDevTokens}>
+            Claim Tokens
+          </button>
+        </div>
+      );
+    }
+    // If user doesn't have any tokens to claim, show the mint button
+    return (
+      <div style={{ display: "flex-col" }}>
+        <div>
+          <input
+            type="number"
+            placeHolder="Amount of Tokens"
+            // BigNumber/from converts the e.target.value to a BigNumber
+            onChange={(e) => setTokenAmount(BigNumber.from(e.target.value))}
+            className={styles.input} 
+            />
+        </div>
+
+        <button
+        className={styles.button}
+        disabled={!(tokenAmount > 0)}
+        onClick={() => mintCryptoDevToken(tokenAmount)}
+        >
+          Mint Tokens
+        </button>
+      </div>
+    );
+  };
+
+  return (
+    <div>
+      <Head>
+        <title>Crypto Devs</title>
+        <meta name="description" content="ICO-Dapp" />
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
+      <div className={styles.main}>
+        <div>
+          <h1 className={styles.title}>Welcome to Crypto Devs ICO!</h1>
+          <div className={styles.description}>
+            You can claim or mint Crypto Dev Tokens here
+          </div>
+          {walletConnected ? (
+            <div>
+              <div className={styles.description}>
+                You have minted {utils.formatEther(balanceOfCryptoDevTokens)} Crypto Dev Tokens
+              </div>
+              <div className={styles.description}>
+                Overall {utils.formatEther(tokensMinted)}/10000 have been minted!
+              </div>
+              {renderButton()}
+            </div>
+          ) : (
+            <button onClick={connectWallet} className={styles.button}>
+              Connect your wallet
+            </button>
+          )}
+        </div>
+        <div>
+          <img className={styles.image} src="./0.svg" />
+        </div>
+      </div>
+
+      <footer className={styles.footer}>
+        Made with &#10084; by Crypto Devs
+      </footer>
+    </div>
+  );
 }
